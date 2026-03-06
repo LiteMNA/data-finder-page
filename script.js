@@ -1,7 +1,7 @@
 const titleText = "I HAVE YOUR DATA...";
 const titleElement = document.getElementById('main-title');
 
-// 1. Анимация печатающегося текста
+// 1. Анимация печатной машинки
 function typeWriter(text, i, fnCallback) {
     if (i < text.length) {
         titleElement.innerHTML = text.substring(0, i + 1) + '<span aria-hidden="true">_</span>';
@@ -16,31 +16,36 @@ function typeWriter(text, i, fnCallback) {
     }
 }
 
-// 2. Получение расширенных данных
+// 2. Получение данных (Обновленный метод)
 async function fetchSystemData() {
+    const ipDisp = document.getElementById('ip-display');
+    const locDisp = document.getElementById('location-display');
+    const ispDisp = document.getElementById('isp-display');
+
     try {
-        // Используем ip-api (не требует ключа для демо-целей)
-        const response = await fetch('https://ip-api.com/json/');
+        // Используем https://ipapi.co/json/ — он стабильно работает на Vercel
+        const response = await fetch('https://ipapi.co/json/');
+        
+        if (!response.ok) throw new Error("API Error");
+        
         const data = await response.json();
 
-        if (data.status === "success") {
-            document.getElementById('ip-display').textContent = data.query;
-            document.getElementById('location-display').textContent = `${data.city}, ${data.country}`;
-            document.getElementById('isp-display').textContent = data.isp;
-        } else {
-            throw new Error("API Limit reached");
-        }
+        // Заполняем данные из ответа API
+        ipDisp.textContent = data.ip || "HIDDEN";
+        locDisp.textContent = `${data.city || 'Unknown'}, ${data.country_name || 'Earth'}`;
+        ispDisp.textContent = data.org || "UNKNOWN PROVIDER";
+
     } catch (error) {
-        document.getElementById('ip-display').textContent = "ENCRYPTED";
-        document.getElementById('location-display').textContent = "UNKNOWN";
-        document.getElementById('isp-display').textContent = "HIDDEN";
+        console.error("Ошибка получения данных:", error);
+        ipDisp.textContent = "ACCESS DENIED";
+        locDisp.textContent = "ENCRYPTED";
+        ispDisp.textContent = "FIREWALL BLOCKED";
     }
 }
 
 // Запуск при загрузке
 window.onload = () => {
     typeWriter(titleText, 0, () => {
-        // Когда текст напечатался, подгружаем данные
         fetchSystemData();
     });
 };
